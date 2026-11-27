@@ -171,3 +171,72 @@
 - Raw recordings are preserved regardless of their usefulness for training.
 
 **Deferred:** Dataset selection, cross-session compatibility validation and targeted coverage analysis.
+
+## DD012 — Data Catalog and Storage Abstraction
+
+**Boundary:** Data Factory ↔ Data Catalog ↔ Storage
+
+**Responsibilities:**
+
+- **Data Factory:** Provides interfaces for data exploration, analytics, annotation, enrichment and dataset curation.
+- **DataCatalog:** Understands the logical organization of experiments, sessions, episodes and data streams. Provides discovery and querying capabilities.
+- **StorageAPI:** Handles physical data retrieval independently of domain-specific concepts.
+
+**Public contract:**
+
+The DataCatalog exposes logical identifiers, metadata and query interfaces rather than physical storage paths.
+
+**What can vary independently:**
+
+- Storage backend: Local filesystem, database or object storage.
+- Data discovery: Directory scanning, metadata indexing or database queries.
+- Query capabilities: Configuration matching, metadata filtering and dataset membership.
+- Consumer applications: Dashboards, automated validation, annotation and training pipelines.
+- Embodiment: Cursor environment, Mobott or other robotic systems.
+
+**Why:**
+
+- Decouple data consumers from physical storage organization.
+- Allow storage infrastructure to evolve without redesigning consumer applications.
+- Provide a consistent vocabulary for discovering and accessing robotic demonstration data.
+- Support multiple robotic systems through shared data infrastructure.
+
+**V0 implementation:**
+
+- DataCatalog directly uses pathlib, YAML and JSON.
+- The filesystem serves as the source of truth.
+- Experiments are logical groupings of compatible sessions.
+- Only finalized episodes are exposed for normal analysis.
+- All operations are read-only.
+- Data is loaded on demand.
+
+**Deferred:**
+
+- Separate StorageAPI implementation.
+- Database-backed metadata indexing.
+- Object storage integration.
+- Advanced querying and caching.
+- Concurrent metadata management.
+
+**Design principle:** Identify abstraction boundaries early, but introduce additional implementations only when actual requirements justify them.
+
+## DD013 — Data Access and Consumption Separation
+
+**Boundary:** EpisodeLoader ↔ Data consumers.
+
+**Contract:** Retrieve episode metadata, recorded streams and individual observations through a read-only API.
+
+**What can vary independently:**
+- Physical storage format and backend.
+- Data consumption requirements.
+- Playback and synchronization strategies.
+- Analytics and validation algorithms.
+- Preprocessing and annotation strategies.
+
+**Why:** Data retrieval should be independent of how the data is interpreted, transformed or presented.
+
+**V0:** Direct retrieval from CSV, JSON and PNG files. Images are loaded on demand.
+
+**Guarantees:** Preserve original timestamps, record ordering and recorded values. No filtering, interpolation or modification of raw recordings.
+
+**Deferred:** Generic stream discovery, alternative storage backends, caching and remote data access.
