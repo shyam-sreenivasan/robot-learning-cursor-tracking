@@ -139,3 +139,35 @@
 **V0:** Stateless translation of relative mouse movements and left-button events.
 
 **Limitations:** No input smoothing, sensitivity adjustment or additional button mappings.
+
+## DD011 — Experiment, Session, Episode and Dataset Hierarchy
+
+**Responsibilities:**
+- Experiment: Defines the collection configuration and protocol.
+- Session: Represents a continuous data collection activity.
+- Episode: Represents an individual task execution.
+- Dataset: Represents a selected collection of episodes for training or evaluation.
+
+**What can vary independently:**
+- Number of sessions per experiment.
+- Number of episodes per session.
+- Operators and collection conditions.
+- Dataset selection and quality criteria.
+
+**Why:**
+- Preserve data provenance.
+- Support incremental data collection.
+- Enable targeted collection for additional coverage.
+- Separate raw data acquisition from dataset construction.
+- Study variations across collection sessions.
+
+**V0 decisions:**
+- Episodes cannot be resumed.
+- Active sessions can collect additional batches.
+- Completed sessions cannot be reopened.
+- Additional data is collected through new sessions.
+- Each session preserves its configuration snapshot.
+- Experiment-defining configuration is identified using a deterministic configuration hash.
+- Raw recordings are preserved regardless of their usefulness for training.
+
+**Deferred:** Dataset selection, cross-session compatibility validation and targeted coverage analysis.
