@@ -1,5 +1,5 @@
-from src.config.config_manager import ConfigManager
-from src.interfaces.pygame_application import PygameApplication
+from src.core.config.config_manager import ConfigManager
+from src.data_acquisition.interfaces.pygame_application import PygameApplication
 
 
 def main():

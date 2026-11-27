@@ -1,6 +1,6 @@
 import pygame
 
-from src.environments.action import Action, ButtonEvent
+from src.core.environments.action import Action, ButtonEvent
 
 
 class PygameInputAdapter:

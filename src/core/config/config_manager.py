@@ -10,7 +10,7 @@ class ConfigManager:
         self.project_root = (
             Path(project_root).resolve()
             if project_root
-            else Path(__file__).resolve().parents[2]
+            else Path(__file__).resolve().parents[3]
         )
 
         self._config = {}

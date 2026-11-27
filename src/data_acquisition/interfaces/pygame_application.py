@@ -8,9 +8,9 @@ from .application_state import ApplicationState
 from .pygame_input_adapter import PygameInputAdapter
 from .pygame_renderer import PygameRenderer
 
-from src.collection.session_manager import SessionManager
+from src.data_acquisition.collection.session_manager import SessionManager
 
-from src.collection.data_contracts import (
+from src.data_acquisition.collection.data_contracts import (
     ActionRecord,
     ObservationRecord,
     StateRecord

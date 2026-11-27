@@ -1,11 +1,11 @@
 import pytest
 
-from src.config.config_manager import ConfigManager
-from src.environments.environment import Environment
-from src.environments.action import Action, ButtonEvent
-from src.tasks.click_target_task import ClickTargetTask
-from src.collection.episode import Episode
-from src.collection.episode_status import EpisodeStatus
+from src.core.config.config_manager import ConfigManager
+from src.core.environments.environment import Environment
+from src.core.environments.action import Action, ButtonEvent
+from src.core.tasks.click_target_task import ClickTargetTask
+from src.data_acquisition.collection.episode import Episode
+from src.data_acquisition.collection.episode_status import EpisodeStatus
 
 class FakeClock:
 

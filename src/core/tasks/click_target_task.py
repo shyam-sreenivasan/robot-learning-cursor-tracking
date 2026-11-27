@@ -1,6 +1,6 @@
 import math
 
-from src.environments.action import ButtonEvent
+from src.core.environments.action import ButtonEvent
 from .task_result import TaskResult
 
 

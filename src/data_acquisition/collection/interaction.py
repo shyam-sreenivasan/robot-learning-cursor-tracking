@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
-from src.environments.state import EnvironmentState
-from src.environments.action import Action
-from src.tasks.task_result import TaskResult
+from src.core.environments.state import EnvironmentState
+from src.core.environments.action import Action
+from src.core.tasks.task_result import TaskResult
 
 
 @dataclass(frozen=True)

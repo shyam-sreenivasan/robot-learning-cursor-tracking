@@ -1,9 +1,9 @@
 import pygame
 
-from src.interfaces.pygame_input_adapter import PygameInputAdapter
-from src.interfaces.pygame_renderer import PygameRenderer
+from src.data_acquisition.interfaces.pygame_input_adapter import PygameInputAdapter
+from src.data_acquisition.interfaces.pygame_renderer import PygameRenderer
 
-from src.collection.data_contracts import (
+from src.data_acquisition.collection.data_contracts import (
     ActionRecord,
     ObservationRecord,
     StateRecord

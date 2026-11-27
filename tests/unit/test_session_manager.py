@@ -1,14 +1,14 @@
 import pytest
 import yaml
 
-from src.config.config_manager import ConfigManager
+from src.core.config.config_manager import ConfigManager
 
-from src.collection.session_manager import SessionManager
-from src.collection.session_status import SessionStatus
-from src.collection.episode_status import EpisodeStatus
-from src.collection.recorder_status import RecorderStatus
+from src.data_acquisition.collection.session_manager import SessionManager
+from src.data_acquisition.collection.session_status import SessionStatus
+from src.data_acquisition.collection.episode_status import EpisodeStatus
+from src.data_acquisition.collection.recorder_status import RecorderStatus
 
-from src.environments.action import Action, ButtonEvent
+from src.core.environments.action import Action, ButtonEvent
 
 
 @pytest.fixture

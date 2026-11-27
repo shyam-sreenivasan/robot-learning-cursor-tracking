@@ -15,10 +15,10 @@ from .data_contracts import (
     StateRecord
 )
 
-from src.environments.environment import Environment
-from src.tasks.click_target_task import ClickTargetTask
+from src.core.environments.environment import Environment
+from src.core.tasks.click_target_task import ClickTargetTask
 
-from src.storage.stream_writers import (
+from src.data_acquisition.storage.stream_writers import (
     ImageWriter,
     CSVWriter
 )

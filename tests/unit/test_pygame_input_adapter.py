@@ -1,11 +1,11 @@
 import pygame
 import pytest
 
-from src.interfaces.pygame_input_adapter import (
+from src.data_acquisition.interfaces.pygame_input_adapter import (
     PygameInputAdapter
 )
 
-from src.environments.action import Action, ButtonEvent
+from src.core.environments.action import Action, ButtonEvent
 
 
 @pytest.fixture

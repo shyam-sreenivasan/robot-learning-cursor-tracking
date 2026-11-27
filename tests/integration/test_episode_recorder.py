@@ -1,21 +1,21 @@
 import csv
 import numpy as np
 
-from src.config.config_manager import ConfigManager
-from src.environments.environment import Environment
-from src.environments.action import Action, ButtonEvent
-from src.tasks.click_target_task import ClickTargetTask
+from src.core.config.config_manager import ConfigManager
+from src.core.environments.environment import Environment
+from src.core.environments.action import Action, ButtonEvent
+from src.core.tasks.click_target_task import ClickTargetTask
 
-from src.collection.episode import Episode
-from src.collection.recorder import Recorder
-from src.collection.recorder_status import RecorderStatus
+from src.data_acquisition.collection.episode import Episode
+from src.data_acquisition.collection.recorder import Recorder
+from src.data_acquisition.collection.recorder_status import RecorderStatus
 
-from src.collection.data_contracts import (
+from src.data_acquisition.collection.data_contracts import (
     ObservationRecord,
     ActionRecord
 )
 
-from src.storage.stream_writers import (
+from src.data_acquisition.storage.stream_writers import (
     CSVWriter,
     ImageWriter
 )

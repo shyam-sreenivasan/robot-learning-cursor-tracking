@@ -1,6 +1,6 @@
 import pytest
 
-from src.config.config_manager import ConfigManager
+from src.core.config.config_manager import ConfigManager
 
 
 @pytest.fixture

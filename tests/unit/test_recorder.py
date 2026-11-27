@@ -5,16 +5,16 @@ from PIL import Image
 import pytest
 import numpy as np
 
-from src.collection.recorder import Recorder
-from src.collection.recorder_status import RecorderStatus
+from src.data_acquisition.collection.recorder import Recorder
+from src.data_acquisition.collection.recorder_status import RecorderStatus
 
-from src.collection.data_contracts import (
+from src.data_acquisition.collection.data_contracts import (
     ObservationRecord,
     ActionRecord,
     StateRecord
 )
 
-from src.storage.stream_writers import (
+from src.data_acquisition.storage.stream_writers import (
     CSVWriter,
     ImageWriter
 )

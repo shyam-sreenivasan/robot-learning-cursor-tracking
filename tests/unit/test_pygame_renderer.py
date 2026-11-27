@@ -1,10 +1,10 @@
 import pytest
 import numpy as np
 
-from src.config.config_manager import ConfigManager
-from src.environments.environment import Environment
-from src.environments.action import Action
-from src.interfaces.pygame_renderer import PygameRenderer
+from src.core.config.config_manager import ConfigManager
+from src.core.environments.environment import Environment
+from src.core.environments.action import Action
+from src.data_acquisition.interfaces.pygame_renderer import PygameRenderer
 
 
 @pytest.fixture
