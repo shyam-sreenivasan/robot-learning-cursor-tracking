@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# Virtual environments
+venv/
+.venv/
+
+# Generated datasets
+data/raw/*
+data/processed/*
+data/annotations/*
+
+# Models and experiment results
+models/*
+results/*
+
+# Preserve directory structure
+!.gitkeep
+
+# IDE
+.vscode/
+.idea/
+
+# Environment variables and secrets
+.env
+.env.*

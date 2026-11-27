@@ -1,0 +1,63 @@
+schema_version: "0.1"
+
+experiment:
+  id: EXP001
+  name: stationary_target
+  version: "0.1"
+
+storage:
+  raw_data_dir: data/raw
+  processed_data_dir: data/processed
+  annotations_dir: data/annotations
+  models_dir: models
+  results_dir: results
+  image_format: png
+
+environment:
+  width: 640
+  height: 480
+
+  background_color: [25, 25, 25]
+
+  cursor:
+    initial_position: random
+    color: [255, 255, 255]
+
+  target:
+    type: stationary
+    color: [0, 255, 0]
+    position: random
+    min_radius_px: 10.0
+    max_radius_px: 40.0
+    radius_distribution: uniform
+
+collection:
+  render_hz: 60
+  observation_hz: 60
+  action_sampling: event_driven
+  episode_timeout_sec: 10
+  countdown_sec: 3
+  episodes_per_batch: 10
+  expected_success_rate: 0.8
+  random_seed: null
+
+operator:
+  id: null
+  instructions: >
+    Click the target within the time limit.
+    Move naturally.
+    Aim to successfully complete at least 80%
+    of the episodes.
+
+preprocessing:
+  sampling_hz: 60
+  action_representation: displacement
+  resampling_method: event_aggregation
+
+training:
+  policy: behavior_cloning
+  random_seed: 42
+
+evaluation:
+  random_seed: 100
+  num_episodes: 100
