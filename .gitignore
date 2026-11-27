@@ -27,3 +27,9 @@ results/*
 # Environment variables and secrets
 .env
 .env.*
+
+# Temporary development artifacts
+learning_dashboard_update.zip
+learning_dashboard_update/
+operator_comparison.zip
+docs/long-term-roadmap.md

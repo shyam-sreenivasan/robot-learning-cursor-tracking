@@ -1,0 +1,23 @@
+dataset:
+  id: dataset_001
+  name: all_demonstrations
+  description: Baseline using all collected demonstrations.
+
+source:
+  experiment_id: EXP001
+  config_hash: "0f09cf723ef3ec12b6ffec3dc7d976534a665d26b27736c37d46d19c960d66f7"
+  outcomes:
+    - success
+    - failed
+    - aborted
+
+preprocessing:
+  observation_representation: absolute_state
+  action_representation: displacement
+  resampling_method: event_aggregation
+  target_sampling_hz: 60
+  normalize_observations: true
+
+split:
+  train_ratio: 0.8
+  random_seed: 42

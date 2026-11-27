@@ -43,11 +43,27 @@ collection:
 
 operator:
   id: null
+
   instructions: >
     Click the target within the time limit.
     Move naturally.
     Aim to successfully complete at least 80%
     of the episodes.
+
+  extended_instructions: |
+    Successfully complete at least 8 out of every 10 episodes.
+
+    Vary your movement strategy across episodes:
+    - Move directly towards the target.
+    - Follow a jagged trajectory with variable speeds.
+    - Move rapidly and reach the target.
+    - Move around slowly before reaching the target.
+    - Deliberately fail to complete 1 or 2 episodes.
+
+    There is no prescribed order for these strategies.
+
+    The objective is to collect diverse demonstrations
+    rather than optimize task completion speed or efficiency.
 
 preprocessing:
   sampling_hz: 60

@@ -1,0 +1,87 @@
+body {
+    background: #f4f6f9;
+    color: #20242a;
+    font-size: 14px;
+}
+
+.panel {
+    background: white;
+    border: 1px solid #e1e5eb;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.metric-card {
+    background: white;
+    border: 1px solid #e1e5eb;
+    border-radius: 8px;
+    padding: 16px;
+    height: 100%;
+}
+
+.metric-label {
+    color: #6c757d;
+    font-size: 12px;
+}
+
+.metric-value {
+    font-size: 25px;
+    font-weight: 600;
+    margin-top: 5px;
+    overflow-wrap: anywhere;
+}
+
+.chart {
+    width: 100%;
+    height: 320px;
+}
+
+.observation {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: contain;
+    background: #191919;
+    border-radius: 6px;
+}
+
+.replay-image {
+    display: block;
+    max-width: 640px;
+    margin: auto;
+}
+
+.episode-table {
+    max-height: 450px;
+    overflow-y: auto;
+}
+
+.episode-table thead {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 1;
+}
+
+.selectable-row {
+    cursor: pointer;
+}
+
+.status-success {
+    color: #198754;
+    font-weight: 600;
+}
+
+.status-failed {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.status-aborted {
+    color: #997404;
+    font-weight: 600;
+}
+
+#trajectoryChart {
+    height: 450px;
+}
