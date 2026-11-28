@@ -12,6 +12,7 @@ from src.preprocessing.observation_transform import (
 )
 
 from src.preprocessing.preprocessing import (
+    append_synthetic_samples,
     select_episodes,
     split_episodes,
     build_split,
@@ -152,6 +153,7 @@ def main():
     arrays = {}
     statistics = {}
     all_diagnostics = []
+    split_diagnostics = {}
 
     # 4. Process each split.
 
@@ -166,6 +168,7 @@ def main():
         )
 
         arrays[name] = data
+        split_diagnostics[name] = diagnostics
 
         statistics[name] = compute_dataset_statistics(
             data,
@@ -208,7 +211,39 @@ def main():
                 f"{name}: reference data verified."
             )
 
-    # 6. Compute overall statistics.
+    # 6. Optional augmentation, after checking human data equivalence.
+    augmentation = config.get("augmentation", {})
+    if augmentation.get("enabled", False):
+        from src.preprocessing.augmentation import generate_synthetic_clicks
+
+        if (augmentation["strategy"] != "synthetic_click"
+                or augmentation["apply_to"] != "train"
+                or augmentation["cursor_distribution"] != "uniform_disc"):
+            raise ValueError("Unsupported augmentation configuration.")
+        if reference_dir is None:
+            raise ValueError("Synthetic augmentation requires a reference dataset.")
+        # E04 must preserve observations as well as action labels.
+        for name, data in arrays.items():
+            reference = load_dataset(reference_dir, name)
+            if not np.array_equal(reference["observations"], data["observations"]):
+                raise ValueError(f"Reference observation mismatch: {name}")
+        synthetic = generate_synthetic_clicks(
+            config=augmentation,
+            width=width,
+            height=height,
+            representation=config["preprocessing"]["observation_representation"],
+            normalization_scale=(config["normalization_scale"]
+                if config["preprocessing"]["normalize_observations"] else None)
+        )
+        arrays["train"] = append_synthetic_samples(arrays["train"], synthetic)
+        arrays["validation"]["sample_source"] = np.full(
+            len(arrays["validation"]["actions"]), "human", dtype="U15")
+        for name, data in arrays.items():
+            statistics[name] = compute_dataset_statistics(data, split_diagnostics[name])
+        print("\nAugmented training statistics:")
+        pprint(statistics["train"])
+
+    # 7. Compute overall statistics.
 
     combined = {
         key: np.concatenate([
@@ -225,7 +260,7 @@ def main():
 
     statistics["episodes"] = all_diagnostics
 
-    # 7. Persist dataset.
+    # 8. Persist dataset.
 
     output_dir = save_dataset(
         output_root,

@@ -76,7 +76,7 @@ def ranking_metrics(p, y):
     return {'roc_auc': float(auc), 'average_precision': float(ap)}
 
 
-def analyze_split(data, manifest, models, workspace):
+def analyze_split(data, manifest, models, workspace, temporal=True):
     x = data['observations']
     raw = x[:, :5].astype(np.float64)
     norm = manifest['observation_normalization']
@@ -104,9 +104,10 @@ def analyze_split(data, manifest, models, workspace):
                      'model_mean_probability': {k: float(v[mask].mean()) if n else None for k,v in p.items()}})
     # Preceding intervals in the same episode; exclude the click interval itself.
     times = data['timestamps_sec']
-    speed = np.linalg.norm(actions[:, :2], axis=1)/data['intervals_sec']
+    speed = (np.linalg.norm(actions[:, :2], axis=1)/data['intervals_sec']
+             if temporal else None)
     windows = []
-    for i in np.flatnonzero(y):
+    for i in (np.flatnonzero(y) if temporal else []):
         m = ((data['episode_ids'] == data['episode_ids'][i]) &
              (data['session_ids'] == data['session_ids'][i]) &
              (times >= times[i]-.5) & (times < times[i]))
@@ -191,10 +192,24 @@ def main():
     report={'dataset':args.dataset,'experiment':args.experiment,'run':args.run,'checkpoint_epochs':epochs,
             'workspace':workspace,'notes':['Post-movement overlap is an aggregated endpoint proxy, not raw press position.',
             'Pre-click windows are aligned to the start of the labeled action interval.',
-            'Threshold sweep is diagnostic, not an independent test or selected deployment threshold.'], 'splits':{}}
+            'Threshold sweep is diagnostic, not an independent test or selected deployment threshold.',
+             'Primary split metrics and temporal windows use human samples only; combined_supervision includes synthetic rows and has no temporal windows.'], 'splits':{}}
     for split in ['train','validation']:
         with np.load(dataset/f'{split}.npz',allow_pickle=False) as data:
-            report['splits'][split]=analyze_split(data,manifest,models,workspace)
+            sources = (data['sample_source'] if 'sample_source' in data.files
+                       else np.full(len(data['actions']), 'human'))
+            human = sources == 'human'
+            if not np.all(np.isin(sources, ['human', 'synthetic_click'])):
+                raise ValueError('Unknown sample provenance')
+            recorded = {key: data[key][human] for key in data.files}
+            report['splits'][split] = analyze_split(recorded,manifest,models,workspace)
+            report['splits'][split]['synthetic_samples_excluded'] = int((~human).sum())
+            if (~human).any():
+                mixed = {key: data[key] for key in data.files}
+                combined = analyze_split(mixed,manifest,models,workspace,temporal=False)
+                for row in combined['distance_bins']:
+                    row['label_click_rate'] = row.pop('human_click_rate')
+                report.setdefault('combined_supervision', {})[split] = combined
     plot_bins(report,out)
     report['heatmaps']=heatmaps(models,manifest,workspace,out)
     path=out/'click_analysis.json'

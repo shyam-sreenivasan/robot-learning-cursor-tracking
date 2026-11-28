@@ -495,6 +495,40 @@ def build_split(catalog, episodes, config):
 # DATASET STATISTICS
 # ============================================================
 
+def append_synthetic_samples(arrays, synthetic):
+    """Append independent supervised rows, not recorded episodes."""
+    n = len(arrays["actions"])
+    m = len(synthetic["actions"])
+    if m < 1 or synthetic["actions"].shape != (m, 3):
+        raise ValueError("Invalid synthetic action shape.")
+    if synthetic["observations"].shape != (m, arrays["observations"].shape[1]):
+        raise ValueError("Invalid synthetic observation shape.")
+    if not np.isfinite(synthetic["observations"]).all():
+        raise ValueError("Non-finite synthetic observations.")
+    if not np.all(synthetic["actions"] == [0, 0, 1]):
+        raise ValueError("Expected stationary click actions.")
+    if "sample_source" in arrays:
+        raise ValueError("Expected unaugmented human samples.")
+    additions = {
+        "observations": synthetic["observations"],
+        "actions": synthetic["actions"],
+        "timestamps_sec": np.full(m, np.nan),
+        "intervals_sec": np.full(m, np.nan),
+        "session_ids": np.full(m, ""),
+        "episode_ids": np.full(m, ""),
+        "frame_ids": np.full(m, -1, dtype=np.int64),
+    }
+    if set(arrays) != set(additions):
+        raise ValueError("Unexpected dataset array schema.")
+    result = {key: np.concatenate([value, additions[key].astype(value.dtype)])
+              for key, value in arrays.items()}
+    result["sample_source"] = np.concatenate([
+        np.full(n, "human", dtype="U15"),
+        np.full(m, "synthetic_click", dtype="U15")
+    ])
+    return result
+
+
 def compute_dataset_statistics(arrays, diagnostics):
 
     actions = arrays["actions"]
@@ -504,9 +538,17 @@ def compute_dataset_statistics(arrays, diagnostics):
         axis=1
     )
 
-    intervals = arrays["intervals_sec"]
+    sources = arrays.get("sample_source", np.full(len(actions), "human"))
+    human = sources == "human"
+    intervals = arrays["intervals_sec"][human]
+    if not np.all(np.isfinite(intervals) & (intervals > 0)):
+        raise ValueError("Invalid recorded sample intervals.")
 
     return {
+        "human_samples": int(human.sum()),
+        "synthetic_samples": int((~human).sum()),
+        "human_click_samples": int(np.sum(human & (actions[:, 2] == 1))),
+        "synthetic_click_samples": int(np.sum(~human & (actions[:, 2] == 1))),
         "total_episodes": len(diagnostics),
         "total_samples": len(actions),
 
@@ -535,7 +577,7 @@ def compute_dataset_statistics(arrays, diagnostics):
             float(displacement.max()),
 
         "effective_sampling_hz":
-            float(1 / intervals.mean()),
+            float(1 / intervals.mean()) if len(intervals) else None,
 
         "successful_episodes": sum(
             e["status"] == "success"
@@ -645,6 +687,17 @@ def save_dataset(
             for name, episodes in splits.items()
         }
     }
+
+    if config.get("augmentation", {}).get("enabled", False):
+        manifest["augmentation"] = config["augmentation"]
+        manifest["sample_metadata"] = {
+            "sample_source": ["human", "synthetic_click"],
+            "synthetic_missing_metadata": {
+                "session_ids": "", "episode_ids": "",
+                "frame_ids": -1, "timestamps_sec": "NaN",
+                "intervals_sec": "NaN"
+            }
+        }
 
     # Write to a temporary directory first.
 
