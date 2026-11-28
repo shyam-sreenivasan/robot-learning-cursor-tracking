@@ -16,6 +16,9 @@ from src.core.tasks.click_target_task import ClickTargetTask
 from src.data_acquisition.collection.episode import Episode
 
 from src.policies.behavior_cloning import predict_action
+from src.preprocessing.observation_transform import (
+    transform_observations
+)
 
 
 # ============================================================
@@ -99,20 +102,25 @@ def build_observation(state, dataset_manifest):
         state.target_radius
     ], dtype=np.float32)
 
+    representation = dataset_manifest[
+        "preprocessing"
+    ]["observation_representation"]
+
     normalization = dataset_manifest[
         "observation_normalization"
     ]
 
-    if normalization["enabled"]:
+    scale = (
+        normalization["scale"]
+        if normalization["enabled"]
+        else None
+    )
 
-        scale = np.array(
-            normalization["scale"],
-            dtype=np.float32
-        )
-
-        observation = observation / scale
-
-    return observation
+    return transform_observations(
+        observation,
+        representation,
+        scale
+    )
 
 
 # ============================================================

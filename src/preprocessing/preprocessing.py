@@ -1,6 +1,20 @@
+import json
+import shutil
+import tempfile
+
+from pathlib import Path
+from datetime import datetime, timezone
+
 import numpy as np
+import yaml
 
 from src.data_factory.loaders.episode_loader import EpisodeLoader
+
+from src.preprocessing.observation_transform import (
+    transform_observations,
+    get_observation_columns,
+    get_normalization_scale
+)
 
 
 OBSERVATION_COLUMNS = [
@@ -160,15 +174,17 @@ def normalize_observations(
     height
 ):
 
-    scale = np.array([
+    scale = get_normalization_scale(
+        "absolute_state",
         width,
-        height,
-        width,
-        height,
-        min(width, height)
-    ], dtype=np.float32)
+        height
+    )
 
-    return observations / scale
+    return transform_observations(
+        observations,
+        "absolute_state",
+        scale
+    )
 
 
 # ============================================================
@@ -354,15 +370,6 @@ def split_episodes(
         ]
     }
 
-import json
-import shutil
-import tempfile
-
-from pathlib import Path
-from datetime import datetime, timezone
-
-import yaml
-
 
 # ============================================================
 # BUILD PROCESSED SPLIT
@@ -401,8 +408,13 @@ def build_split(catalog, episodes, config):
 
         processed = preprocess_episode(loader)
 
+        # Validate action aggregation using raw absolute
+        # coordinates before applying any transformation.
+
         reconstruction = check_reconstruction(
-            processed, width, height
+            processed,
+            width,
+            height
         )
 
         if processed["unassigned_actions"]:
@@ -415,15 +427,27 @@ def build_split(catalog, episodes, config):
                 f"Reconstruction mismatch: {episode_id}"
             )
 
-        observations = processed["observations"]
+        # Apply configured observation representation.
+
+        representation = config[
+            "observation_representation"
+        ]
+
+        scale = None
 
         if config["normalize_observations"]:
 
-            observations = normalize_observations(
-                observations,
+            scale = get_normalization_scale(
+                representation,
                 width,
                 height
             )
+
+        observations = transform_observations(
+            processed["observations"],
+            representation,
+            scale
+        )
 
         count = len(observations)
 
@@ -572,6 +596,10 @@ def save_dataset(
 
     output_root.mkdir(parents=True, exist_ok=True)
 
+    representation = config["preprocessing"][
+        "observation_representation"
+    ]
+
     manifest = {
         "schema_version": "0.1",
 
@@ -587,7 +615,8 @@ def save_dataset(
 
         "split": config["split"],
 
-        "observation_columns": OBSERVATION_COLUMNS,
+        "observation_columns":
+            get_observation_columns(representation),
 
         "action_columns": ACTION_COLUMNS,
 

@@ -2,16 +2,23 @@ import argparse
 import yaml
 import numpy as np
 
+from pathlib import Path
 from pprint import pprint
 
 from src.data_factory.loaders.data_catalog import DataCatalog
+
+from src.preprocessing.observation_transform import (
+    get_normalization_scale
+)
 
 from src.preprocessing.preprocessing import (
     select_episodes,
     split_episodes,
     build_split,
     compute_dataset_statistics,
-    save_dataset
+    save_dataset,
+    load_dataset_manifest,
+    load_dataset
 )
 
 
@@ -31,6 +38,8 @@ def main():
 
     catalog = DataCatalog("data/raw")
 
+    output_root = Path("data/processed")
+
     # 1. Select episodes.
 
     episodes = select_episodes(
@@ -38,9 +47,75 @@ def main():
         config["source"]
     )
 
+    # 2. Establish dataset split.
+
+    reference_dataset = config["split"].get(
+        "reuse_from"
+    )
+
+    reference_dir = None
+
+    if reference_dataset:
+
+        reference_dir = output_root / reference_dataset
+
+        reference_manifest = load_dataset_manifest(
+            reference_dir
+        )
+
+        available = {
+            (e["session_id"], e["episode_id"]): e
+            for e in episodes
+        }
+
+        splits = {}
+
+        for name, selected in reference_manifest[
+            "episodes"
+        ].items():
+
+            splits[name] = []
+
+            for episode in selected:
+
+                key = (
+                    episode["session_id"],
+                    episode["episode_id"]
+                )
+
+                if key not in available:
+                    raise ValueError(
+                        f"Reference episode unavailable: {key}"
+                    )
+
+                current = available[key]
+
+                if current["status"] != episode["status"]:
+                    raise ValueError(
+                        f"Reference episode status changed: {key}"
+                    )
+
+                splits[name].append(current)
+
+        print("Reusing split from:", reference_dataset)
+
+    else:
+
+        splits = split_episodes(
+            episodes,
+            train_ratio=config["split"]["train_ratio"],
+            seed=config["split"]["random_seed"]
+        )
+
+    episodes = [
+        episode
+        for selected in splits.values()
+        for episode in selected
+    ]
+
     print("Selected episodes:", len(episodes))
 
-    # 2. Establish normalization parameters.
+    # 3. Establish normalization parameters.
 
     workspaces = set()
 
@@ -64,20 +139,14 @@ def main():
 
     width, height = workspaces.pop()
 
-    config["normalization_scale"] = [
-        width,
-        height,
-        width,
-        height,
-        min(width, height)
-    ]
-
-    # 3. Split by episode.
-
-    splits = split_episodes(
-        episodes,
-        train_ratio=config["split"]["train_ratio"],
-        seed=config["split"]["random_seed"]
+    config["normalization_scale"] = (
+        get_normalization_scale(
+            config["preprocessing"][
+                "observation_representation"
+            ],
+            width,
+            height
+        )
     )
 
     arrays = {}
@@ -107,7 +176,39 @@ def main():
 
         pprint(statistics[name])
 
-    # 5. Compute overall statistics.
+    # 5. Verify controlled dataset equivalence.
+
+    if reference_dir is not None:
+
+        for name, data in arrays.items():
+
+            reference = load_dataset(
+                reference_dir,
+                name
+            )
+
+            for key in [
+                "actions",
+                "timestamps_sec",
+                "intervals_sec",
+                "session_ids",
+                "episode_ids",
+                "frame_ids"
+            ]:
+
+                if not np.array_equal(
+                    reference[key],
+                    data[key]
+                ):
+                    raise ValueError(
+                        f"Reference mismatch: {name}/{key}"
+                    )
+
+            print(
+                f"{name}: reference data verified."
+            )
+
+    # 6. Compute overall statistics.
 
     combined = {
         key: np.concatenate([
@@ -124,10 +225,10 @@ def main():
 
     statistics["episodes"] = all_diagnostics
 
-    # 6. Persist dataset.
+    # 7. Persist dataset.
 
     output_dir = save_dataset(
-        "data/processed",
+        output_root,
         config,
         splits,
         arrays,
